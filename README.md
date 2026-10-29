@@ -1,6 +1,43 @@
-# Smart Expense Tracker with Data Visualization (Multi-User)
+# Smart Expense Tracker with Data Visualization (GitHub Pages & Multi-User)
 
-A Python + Flask college project featuring automated AI category classification (Naive Bayes), data visualization (Matplotlib), spending trend prediction (Linear Regression), proactive budget alerts, and **multi-user private data isolation**.
+A full-featured Smart Expense Tracker college project equipped with:
+- **Zero-Host GitHub Pages Deployment**: Runs 100% in the browser with no server or hosting costs required!
+- **AI Feature 1: Naive Bayes Text Classification** (predicts category live from description as you type)
+- **AI Feature 2: Linear Regression Spending Forecasting** (predicts next month's total spending)
+- **Interactive Visual Analytics** (Dynamic Category Breakdown Pie Chart, Monthly Totals Bar Chart, and Daily Spending Line Chart in soft pastel theme)
+- **Multi-User Profile Isolation** & **CSV Import/Export**
+- **Python + Flask Backend** also included for local development & college viva evaluation
+
+---
+
+## 🌐 1. Host on GitHub Pages (Zero-Host, 100% Free Forever)
+
+Your project is completely configured and ready to be hosted on **GitHub Pages**:
+
+### Step 1: Create a GitHub Repository
+1. Log in to [github.com](https://github.com) and click **New Repository**.
+2. Name it (for example: `smart-expense-tracker`).
+3. Set visibility to **Public** and leave all checkboxes unchecked.
+4. Click **Create repository**.
+
+### Step 2: Push Your Code
+Open your terminal inside this project directory (`C:\Users\MUNNA\.gemini\antigravity\scratch\smart-expense-tracker`) and run:
+```bash
+git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/smart-expense-tracker.git
+git push -u origin main
+```
+
+### Step 3: Activate GitHub Pages
+1. In your GitHub repository, click **Settings** (gear icon at top).
+2. In the left sidebar, click **Pages**.
+3. Under **Build and deployment**:
+   - **Source**: Select **GitHub Actions** (the included `.github/workflows/deploy.yml` will automatically build and publish).
+   - *Alternatively, select **Deploy from a branch**, choose `main`, and select `/ (root)` or `/docs`.*
+4. Your website will be live at:
+   ```
+   https://<YOUR_GITHUB_USERNAME>.github.io/smart-expense-tracker/
+   ```
+   ✨ It runs 24/7 with zero maintenance, no host computer needed!
 
 ---
 
