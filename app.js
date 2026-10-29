@@ -581,9 +581,26 @@ function refreshAppUI() {
   const expenses = StorageManager.getExpenses(currentUser);
   const budget = StorageManager.getBudget(currentUser);
 
-  // Update Navbar user pill
+  // Update Navbar user pill & label
   const userPill = document.getElementById("currentUserPill");
   if (userPill) userPill.innerText = `👤 ${currentUser}`;
+  const userLabel = document.getElementById("currentUserLabel");
+  if (userLabel) userLabel.innerText = currentUser;
+  const modalActiveUser = document.getElementById("modalActiveUser");
+  if (modalActiveUser) modalActiveUser.innerText = currentUser;
+  const budgetModalUser = document.getElementById("budgetModalUser");
+  if (budgetModalUser) budgetModalUser.innerText = currentUser;
+
+  // Update profile pills inside modal
+  const profilesList = document.getElementById("userProfilesList");
+  if (profilesList) {
+    const users = StorageManager.getAllUsers();
+    profilesList.innerHTML = users.map(u => `
+      <button type="button" class="user-profile-pill ${u === currentUser ? 'active' : ''}" onclick="switchToUser('${u}')">
+        👤 ${u} ${u === currentUser ? '✓' : ''}
+      </button>
+    `).join('');
+  }
 
   // Current month stats
   const now = new Date();
@@ -910,35 +927,93 @@ function handleImportCSV(event) {
   reader.readAsText(file);
 }
 
-function handleSetBudget() {
-  const currentUser = StorageManager.getCurrentUser();
-  const currentBudget = StorageManager.getBudget(currentUser);
-  const input = prompt(`Set monthly budget for ${currentUser} (₹):`, currentBudget);
-  if (input !== null) {
-    const val = parseFloat(input.trim());
-    if (!isNaN(val) && val > 0) {
-      StorageManager.setBudget(currentUser, val);
-      refreshAppUI();
-    } else {
-      alert("Please enter a valid numeric budget greater than 0.");
+// -----------------------------------------------------------------------------
+// USER MANAGEMENT & MODAL CONTROLLERS
+// -----------------------------------------------------------------------------
+function openUserModal() {
+  const modal = document.getElementById("userModal");
+  if (modal) {
+    modal.style.display = "flex";
+    const input = document.getElementById("newUsernameInput");
+    if (input) {
+      input.value = "";
+      setTimeout(() => input.focus(), 100);
     }
   }
 }
 
-function handleSwitchUser() {
-  const users = StorageManager.getAllUsers();
-  const current = StorageManager.getCurrentUser();
-  const name = prompt(`Currently logged in as '${current}'.\nEnter username to switch to (or create new):`, current);
-  if (name && name.trim()) {
-    const clean = name.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-    if (clean.length >= 2) {
-      StorageManager.setCurrentUser(clean);
-      StorageManager.seedDemoDataIfEmpty(clean);
-      refreshAppUI();
-    } else {
-      alert("Username must be at least 2 alphanumeric characters.");
-    }
+function closeUserModal() {
+  const modal = document.getElementById("userModal");
+  if (modal) modal.style.display = "none";
+}
+
+function handleCreateUser(e) {
+  e.preventDefault();
+  const input = document.getElementById("newUsernameInput");
+  const raw = input ? input.value.trim().toLowerCase() : "";
+  const clean = raw.replace(/[^a-z0-9_]/g, '');
+
+  if (clean.length < 2) {
+    alert("Please enter a valid username of at least 2 alphanumeric characters.");
+    return;
   }
+
+  StorageManager.ensureUser(clean);
+  StorageManager.setCurrentUser(clean);
+  StorageManager.seedDemoDataIfEmpty(clean);
+  closeUserModal();
+  refreshAppUI();
+
+  // Show friendly alert
+  const alertContainer = document.getElementById("alertContainer");
+  if (alertContainer) {
+    alertContainer.innerHTML = `
+      <div class="alert alert-success">
+        <span class="alert-icon">✅</span>
+        <div class="alert-content">
+          <strong>Account Ready!</strong> Switched to user profile <strong>${clean}</strong>. Your expenses, budget, and charts are completely private.
+        </div>
+      </div>`;
+    setTimeout(() => {
+      if (alertContainer.innerHTML.includes("Account Ready!")) alertContainer.innerHTML = "";
+    }, 6000);
+  }
+}
+
+function switchToUser(username) {
+  StorageManager.setCurrentUser(username);
+  closeUserModal();
+  refreshAppUI();
+}
+
+function openBudgetModal() {
+  const modal = document.getElementById("budgetModal");
+  const currentUser = StorageManager.getCurrentUser();
+  const currentBudget = StorageManager.getBudget(currentUser);
+  const input = document.getElementById("budgetModalInput");
+  const userEl = document.getElementById("budgetModalUser");
+  if (userEl) userEl.innerText = currentUser;
+  if (input) input.value = currentBudget;
+  if (modal) modal.style.display = "flex";
+}
+
+function closeBudgetModal() {
+  const modal = document.getElementById("budgetModal");
+  if (modal) modal.style.display = "none";
+}
+
+function handleSaveBudget(e) {
+  e.preventDefault();
+  const input = document.getElementById("budgetModalInput");
+  const val = parseFloat(input.value);
+  if (isNaN(val) || val <= 0) {
+    alert("Please enter a valid positive budget amount.");
+    return;
+  }
+  const currentUser = StorageManager.getCurrentUser();
+  StorageManager.setBudget(currentUser, val);
+  closeBudgetModal();
+  refreshAppUI();
 }
 
 // -----------------------------------------------------------------------------
@@ -997,10 +1072,13 @@ document.addEventListener("DOMContentLoaded", function() {
   if (importFileInput) importFileInput.addEventListener("change", handleImportCSV);
 
   const budgetBtn = document.getElementById("btnSetBudget");
-  if (budgetBtn) budgetBtn.addEventListener("click", handleSetBudget);
+  if (budgetBtn) budgetBtn.addEventListener("click", openBudgetModal);
+
+  const openUserModalBtn = document.getElementById("btnOpenUserModal");
+  if (openUserModalBtn) openUserModalBtn.addEventListener("click", openUserModal);
 
   const userBtn = document.getElementById("currentUserPill");
-  if (userBtn) userBtn.addEventListener("click", handleSwitchUser);
+  if (userBtn) userBtn.addEventListener("click", openUserModal);
 
   const refreshChartBtn = document.getElementById("btnRefreshCharts");
   if (refreshChartBtn) refreshChartBtn.addEventListener("click", () => {

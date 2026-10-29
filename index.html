@@ -70,8 +70,8 @@
           <li><a href="javascript:void(0)" id="btnSetBudget" class="nav-link">Budget</a></li>
           <li><a href="javascript:void(0)" id="btnLoadSample" class="nav-link" style="color: #4338CA; font-weight: 600;">Load Sample Data</a></li>
           <li>
-            <button id="currentUserPill" class="btn btn-subtle text-sm" style="padding: 0.4rem 0.85rem;" title="Click to switch or create user">
-              👤 demo
+            <button id="btnOpenUserModal" class="btn btn-secondary text-sm" style="padding: 0.45rem 0.95rem; font-weight: 600;" title="Manage accounts and switch users">
+              👤 <span id="currentUserLabel">demo</span> (Switch / New User)
             </button>
           </li>
         </ul>
@@ -248,6 +248,70 @@
     <footer class="footer">
       <p>Smart Expense Tracker &copy; 2026 — Hosted via GitHub Pages &bull; Client-Side AI & Data Visualization</p>
     </footer>
+  </div>
+
+  <!-- User Accounts & Registration Modal -->
+  <div id="userModal" class="modal-backdrop" style="display: none;" onclick="if(event.target === this) closeUserModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-size: 1.15rem; font-weight: 600; color: var(--text-main);">👥 User Accounts & Profiles</h3>
+        <button class="modal-close" onclick="closeUserModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Currently Active User -->
+        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Currently Logged In:</span>
+          <div style="font-size: 1.15rem; font-weight: 700; color: var(--primary-text); margin-top: 0.15rem;">
+            👤 <span id="modalActiveUser">demo</span>
+          </div>
+        </div>
+
+        <!-- Create New User Profile Form -->
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border-color);">
+          <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main);">➕ Create New User Profile</h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.85rem;">
+            Enter your name to start your own private expense tracker with independent budgets and charts:
+          </p>
+          <form id="createUserForm" onsubmit="handleCreateUser(event)">
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <input type="text" id="newUsernameInput" class="form-control" placeholder="Enter username (e.g. rahul, priya, munna)" required maxlength="20" autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block text-sm">Create & Switch to Profile</button>
+          </form>
+        </div>
+
+        <!-- Switch Existing User Profiles -->
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main);">Switch to Another Profile</h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+            Click on any profile below to view their expenses:
+          </p>
+          <div id="userProfilesList" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <!-- Dynamic list of user pills -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set Budget Modal -->
+  <div id="budgetModal" class="modal-backdrop" style="display: none;" onclick="if(event.target === this) closeBudgetModal()">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 style="font-size: 1.15rem; font-weight: 600; color: var(--text-main);">💰 Monthly Budget Target</h3>
+        <button class="modal-close" onclick="closeBudgetModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="setBudgetForm" onsubmit="handleSaveBudget(event)">
+          <div class="form-group">
+            <label class="form-label" for="budgetModalInput">Monthly Budget for <strong id="budgetModalUser">demo</strong> (₹)</label>
+            <input type="number" id="budgetModalInput" class="form-control" min="100" step="100" placeholder="e.g. 25000" required>
+            <span class="form-help">Warning triggers at 80%, alert at 100%.</span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">Save Budget</button>
+        </form>
+      </div>
+    </div>
   </div>
 
   <!-- Client-Side Engine -->
