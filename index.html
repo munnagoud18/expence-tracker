@@ -65,14 +65,19 @@
       </a>
       <nav>
         <ul class="nav-links">
-          <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
+          <li><a href="index.html" class="nav-link active">Dashboard</a></li>
           <li><a href="#expenses" class="nav-link">All Expenses</a></li>
           <li><a href="javascript:void(0)" id="btnSetBudget" class="nav-link">Budget</a></li>
           <li><a href="javascript:void(0)" id="btnLoadSample" class="nav-link" style="color: #4338CA; font-weight: 600;">Load Sample Data</a></li>
           <li>
-            <button id="btnOpenUserModal" class="btn btn-secondary text-sm" style="padding: 0.45rem 0.95rem; font-weight: 600;" title="Manage accounts and switch users">
-              👤 <span id="currentUserLabel">demo</span> (Switch / New User)
-            </button>
+            <span class="nav-link" style="cursor: default; color: var(--text-main); font-weight: 600;">
+              👤 <span id="currentUserLabel">demo</span>
+            </span>
+          </li>
+          <li>
+            <a href="javascript:void(0)" onclick="handleLogout()" class="btn-sm-danger" style="text-decoration: none; padding: 0.45rem 0.85rem; font-weight: 600;">
+              Logout
+            </a>
           </li>
         </ul>
       </nav>
@@ -173,6 +178,20 @@
           </div>
           <button type="button" class="btn btn-subtle text-sm" id="btnRefreshCharts" title="Reload charts">
             🔄 Refresh
+          </button>
+        </div>
+
+        <!-- Empty State (Shown when user has 0 expenses) -->
+        <div id="chartsEmptyState" style="display: none; text-align: center; padding: 2.75rem 1.5rem; background: var(--bg-color); border: 1px dashed var(--border-color); border-radius: var(--border-radius-sm); margin-top: 1rem;">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+          <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">
+            No Expenses Logged Yet for <span id="emptyStateUsername" style="color: #4338CA;">User</span>
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 1.25rem;">
+            Add your first expense on the left or load sample data to generate your personalized charts!
+          </p>
+          <button type="button" class="btn btn-secondary text-sm" onclick="handleLoadSampleData()">
+            🎲 Load 6 Months Sample Data for Demo
           </button>
         </div>
 

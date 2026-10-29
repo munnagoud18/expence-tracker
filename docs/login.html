@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Smart Expense Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container" style="max-width: 480px; margin-top: 2rem;">
+    <!-- Brand Header -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="login.html" class="navbar-brand" style="justify-content: center; font-size: 1.5rem;">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <p class="text-sm text-muted" style="margin-top: 0.5rem;">
+        Personalized spending tracking, AI categorization & prediction
+      </p>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="loginAlert" class="alert-container"></div>
+
+    <!-- Login Card -->
+    <div class="card form-card">
+      <div class="section-header">
+        <h2 class="section-title">Sign In to Your Account</h2>
+      </div>
+      <p class="text-sm text-muted" style="margin-bottom: 1.25rem;">
+        Each user has their own private expenses, budget, and charts.
+      </p>
+
+      <form id="loginForm" class="expense-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="usernameInput">Username</label>
+          <input type="text" id="usernameInput" placeholder="e.g. rahul, priya, munna" class="form-control" autocomplete="username" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="passwordInput">Password</label>
+          <input type="password" id="passwordInput" placeholder="••••••••" class="form-control" autocomplete="current-password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">Sign In</button>
+      </form>
+
+      <!-- Quick Demo Login Option -->
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); text-align: center;">
+        <p class="text-sm text-muted" style="margin-bottom: 0.75rem;">Want to test immediately?</p>
+        <button type="button" onclick="handleDemoLogin()" class="btn btn-secondary btn-block text-sm">
+          ⚡ Instant Demo Login (as 'demo')
+        </button>
+      </div>
+
+      <!-- Registration Link -->
+      <div style="margin-top: 1.25rem; text-align: center;">
+        <p class="text-sm text-muted">
+          New user? <a href="register.html" style="color: #4338CA; font-weight: 600; text-decoration: none;">Create an Account</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" style="margin-top: 2rem;">
+      <p>Smart Expense Tracker &copy; 2026 — GitHub Pages Edition</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Check if redirected with flash message
+    document.addEventListener("DOMContentLoaded", () => {
+      const alertBox = document.getElementById("loginAlert");
+      const msg = sessionStorage.getItem("tracker_flash_msg");
+      const cat = sessionStorage.getItem("tracker_flash_cat") || "info";
+      if (msg) {
+        alertBox.innerHTML = `
+          <div class="alert alert-${cat}">
+            <span class="alert-icon">${cat === 'danger' ? '🚨' : (cat === 'success' ? '✅' : 'ℹ️')}</span>
+            <div class="alert-content">${msg}</div>
+          </div>`;
+        sessionStorage.removeItem("tracker_flash_msg");
+        sessionStorage.removeItem("tracker_flash_cat");
+      }
+    });
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const user = document.getElementById("usernameInput").value.trim();
+      const pass = document.getElementById("passwordInput").value;
+      const res = StorageManager.login(user, pass);
+      const alertBox = document.getElementById("loginAlert");
+
+      if (res.success) {
+        sessionStorage.setItem("tracker_flash_msg", res.message);
+        sessionStorage.setItem("tracker_flash_cat", "success");
+        window.location.href = "index.html";
+      } else {
+        alertBox.innerHTML = `
+          <div class="alert alert-danger">
+            <span class="alert-icon">🚨</span>
+            <div class="alert-content">${res.message}</div>
+          </div>`;
+      }
+    }
+
+    function handleDemoLogin() {
+      StorageManager.login("demo", "demo123");
+      sessionStorage.setItem("tracker_flash_msg", "Welcome back, demo! Instant login successful.");
+      sessionStorage.setItem("tracker_flash_cat", "success");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

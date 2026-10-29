@@ -243,33 +243,73 @@ function predictNextMonthSpending(expenses) {
 // -----------------------------------------------------------------------------
 // 4. STORAGE MANAGER (MULTI-USER LOCALSTORAGE)
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 4. STORAGE MANAGER (MULTI-USER LOCALSTORAGE ENGINE)
+// -----------------------------------------------------------------------------
 const StorageManager = {
-  getCurrentUser() {
-    return localStorage.getItem("tracker_active_user") || "demo";
+  getUsersDb() {
+    try {
+      const u = JSON.parse(localStorage.getItem("tracker_users_db"));
+      if (u && typeof u === "object") return u;
+    } catch(e) {}
+    const defaultDb = {
+      "demo": { password: "demo123", createdAt: new Date().toISOString() }
+    };
+    localStorage.setItem("tracker_users_db", JSON.stringify(defaultDb));
+    if (!localStorage.getItem("tracker_expenses_demo")) {
+      this.generateSampleData("demo");
+    }
+    return defaultDb;
   },
 
-  setCurrentUser(username) {
+  saveUsersDb(db) {
+    localStorage.setItem("tracker_users_db", JSON.stringify(db));
+  },
+
+  getLoggedInUser() {
+    return localStorage.getItem("tracker_logged_in_user");
+  },
+
+  setLoggedInUser(username) {
+    localStorage.setItem("tracker_logged_in_user", username.trim().toLowerCase());
+  },
+
+  logout() {
+    localStorage.removeItem("tracker_logged_in_user");
+  },
+
+  register(username, password) {
     const clean = username.trim().toLowerCase();
-    localStorage.setItem("tracker_active_user", clean);
-    this.ensureUser(clean);
+    const db = this.getUsersDb();
+    if (db[clean]) {
+      return { success: false, message: `Username '${clean}' is already taken. Please choose another.` };
+    }
+    db[clean] = { password: password, createdAt: new Date().toISOString() };
+    this.saveUsersDb(db);
+
+    // Initialize user's private data (completely empty start!)
+    localStorage.setItem(`tracker_expenses_${clean}`, JSON.stringify([]));
+    localStorage.setItem(`tracker_budget_${clean}`, "20000.0");
+    this.setLoggedInUser(clean);
+    return { success: true, message: `Account created successfully! Welcome, ${clean}!` };
+  },
+
+  login(username, password) {
+    const clean = username.trim().toLowerCase();
+    const db = this.getUsersDb();
+    if (db[clean] && db[clean].password === password) {
+      this.setLoggedInUser(clean);
+      return { success: true, message: `Welcome back, ${clean}!` };
+    }
+    return { success: false, message: "Invalid username or password. Please try again." };
+  },
+
+  getCurrentUser() {
+    return this.getLoggedInUser() || "demo";
   },
 
   getAllUsers() {
-    try {
-      const users = JSON.parse(localStorage.getItem("tracker_user_list"));
-      if (Array.isArray(users) && users.length > 0) return users;
-    } catch (e) {}
-    const defaultUsers = ["demo"];
-    localStorage.setItem("tracker_user_list", JSON.stringify(defaultUsers));
-    return defaultUsers;
-  },
-
-  ensureUser(username) {
-    const users = this.getAllUsers();
-    if (!users.includes(username)) {
-      users.push(username);
-      localStorage.setItem("tracker_user_list", JSON.stringify(users));
-    }
+    return Object.keys(this.getUsersDb());
   },
 
   getBudget(username) {
@@ -309,13 +349,6 @@ const StorageManager = {
     let expenses = this.getExpenses(username);
     expenses = expenses.filter(item => item.id !== id);
     this.saveExpenses(username, expenses);
-  },
-
-  seedDemoDataIfEmpty(username) {
-    const existing = this.getExpenses(username);
-    if (existing.length === 0) {
-      this.generateSampleData(username);
-    }
   },
 
   generateSampleData(username) {
@@ -372,13 +405,38 @@ const StorageManager = {
 };
 
 // -----------------------------------------------------------------------------
-// 5. CHART.JS VISUALIZATION CONTROLLER
+// 5. CHART.JS VISUALIZATION CONTROLLER (PER-USER DYNAMIC CHARTS)
 // -----------------------------------------------------------------------------
 let pieChartInstance = null;
 let barChartInstance = null;
 let lineChartInstance = null;
 
 function renderCharts(expenses) {
+  const chartsGrid = document.querySelector(".charts-grid");
+  const chartsCaption = document.querySelector(".chart-caption");
+  const emptyState = document.getElementById("chartsEmptyState");
+  const currentUser = StorageManager.getCurrentUser();
+
+  // If user has NO expenses logged yet, display clean empty state
+  if (!expenses || expenses.length === 0) {
+    if (chartsGrid) chartsGrid.style.display = "none";
+    if (chartsCaption) chartsCaption.style.display = "none";
+    if (emptyState) {
+      emptyState.style.display = "block";
+      const uEl = document.getElementById("emptyStateUsername");
+      if (uEl) uEl.innerText = currentUser;
+    }
+    if (pieChartInstance) { pieChartInstance.destroy(); pieChartInstance = null; }
+    if (barChartInstance) { barChartInstance.destroy(); barChartInstance = null; }
+    if (lineChartInstance) { lineChartInstance.destroy(); lineChartInstance = null; }
+    return;
+  }
+
+  // User has expenses: show charts grid
+  if (chartsGrid) chartsGrid.style.display = "grid";
+  if (chartsCaption) chartsCaption.style.display = "block";
+  if (emptyState) emptyState.style.display = "none";
+
   const categoryTotals = { "Food": 0, "Transport": 0, "Shopping": 0, "Bills": 0, "Entertainment": 0, "Other": 0 };
   const monthlyTotals = {};
   const dailyTotals = {};
@@ -1016,21 +1074,50 @@ function handleSaveBudget(e) {
   refreshAppUI();
 }
 
+function handleLogout() {
+  const user = StorageManager.getLoggedInUser() || "User";
+  StorageManager.logout();
+  sessionStorage.setItem("tracker_flash_msg", `You have been signed out. See you soon, ${user}!`);
+  sessionStorage.setItem("tracker_flash_cat", "info");
+  window.location.href = "login.html";
+}
+
 // -----------------------------------------------------------------------------
 // 8. INITIALIZATION & LIVE AI EVENT BINDING
 // -----------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", function() {
+  const currentPath = window.location.pathname.toLowerCase();
+  const isAuthPage = currentPath.endsWith("login.html") || currentPath.endsWith("register.html");
+
+  // Auth Protection: If visiting dashboard without login, redirect to login.html
+  if (!isAuthPage) {
+    const loggedUser = StorageManager.getLoggedInUser();
+    if (!loggedUser) {
+      window.location.href = "login.html";
+      return;
+    }
+  }
+
+  // Display flash messages from sessionStorage if present
+  const alertBox = document.getElementById("alertContainer");
+  const flashMsg = sessionStorage.getItem("tracker_flash_msg");
+  const flashCat = sessionStorage.getItem("tracker_flash_cat") || "success";
+  if (flashMsg && alertBox) {
+    alertBox.innerHTML = `
+      <div class="alert alert-${flashCat}">
+        <span class="alert-icon">${flashCat === 'danger' ? '🚨' : (flashCat === 'warning' ? '⚠️' : '✅')}</span>
+        <div class="alert-content">${flashMsg}</div>
+      </div>`;
+    sessionStorage.removeItem("tracker_flash_msg");
+    sessionStorage.removeItem("tracker_flash_cat");
+  }
+
   // Set default date to today
   const dateInput = document.getElementById("expDate");
   if (dateInput) {
     const todayStr = new Date().toISOString().split("T")[0];
     dateInput.value = todayStr;
   }
-
-  // Ensure demo user has data on initial launch
-  const initialUser = StorageManager.getCurrentUser();
-  StorageManager.ensureUser(initialUser);
-  StorageManager.seedDemoDataIfEmpty(initialUser);
 
   // Live Naive Bayes auto-categorization
   const descInput = document.getElementById("expDescription");
