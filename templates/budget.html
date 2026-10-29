@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Monthly Budget - Smart Expense Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container" style="max-width: 600px;">
+    <!-- Navbar -->
+    <header class="navbar">
+      <a href="{{ url_for('index') }}" class="navbar-brand">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="{{ url_for('index') }}" class="nav-link">Dashboard</a></li>
+          <li><a href="{{ url_for('expenses_list') }}" class="nav-link">All Expenses</a></li>
+          <li><a href="{{ url_for('logout') }}" class="btn-sm-danger" style="text-decoration: none; padding: 0.45rem 0.85rem;">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Alert Messages -->
+    <div class="alert-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span class="alert-icon">
+                {% if category == 'danger' %}🚨
+                {% elif category == 'warning' %}⚠️
+                {% elif category == 'success' %}✅
+                {% else %}ℹ️{% endif %}
+              </span>
+              <div class="alert-content">{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Budget Settings Card -->
+    <div class="card form-card">
+      <div class="section-header">
+        <h2 class="section-title">Monthly Budget for {{ current_user }}</h2>
+      </div>
+      <p class="text-sm text-muted" style="margin-bottom: 1.25rem;">
+        Set your personal monthly spending target. The system monitors your spending and triggers an alert when you hit 80% or exceed 100% of this budget.
+      </p>
+
+      <form class="expense-form" method="POST" action="{{ url_for('budget') }}">
+        <div class="form-group">
+          <label class="form-label" for="budget">Monthly Budget Limit (₹)</label>
+          <input type="number" id="budget" name="budget" step="100" min="100" value="{{ "{:.0f}".format(budget) }}" class="form-control" required>
+          <span class="form-help">Current setting: ₹{{ "{:,.2f}".format(budget) }} stored for {{ current_user }}</span>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 2;">Update Budget</button>
+          <a href="{{ url_for('index') }}" class="btn btn-subtle" style="flex: 1; text-align: center;">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Smart Expense Tracker &copy; 2026 — Logged in as <strong>{{ current_user }}</strong></p>
+    </footer>
+  </div>
+</body>
+</html>

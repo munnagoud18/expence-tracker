@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account - Smart Expense Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container" style="max-width: 480px; margin-top: 2rem;">
+    <!-- Brand Header -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="{{ url_for('login') }}" class="navbar-brand" style="justify-content: center; font-size: 1.5rem;">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <p class="text-sm text-muted" style="margin-top: 0.5rem;">
+        Get your own private spending dashboard in seconds
+      </p>
+    </div>
+
+    <!-- Flash Alert Messages -->
+    <div class="alert-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span class="alert-icon">
+                {% if category == 'danger' %}🚨
+                {% elif category == 'warning' %}⚠️
+                {% elif category == 'success' %}✅
+                {% else %}ℹ️{% endif %}
+              </span>
+              <div class="alert-content">{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Register Card -->
+    <div class="card form-card">
+      <div class="section-header">
+        <h2 class="section-title">Create Your Account</h2>
+      </div>
+      <p class="text-sm text-muted" style="margin-bottom: 1.25rem;">
+        Your expenses, budget targets, and prediction reports will be stored separately under your profile.
+      </p>
+
+      <form class="expense-form" method="POST" action="{{ url_for('register') }}">
+        <div class="form-group">
+          <label class="form-label" for="username">Choose a Username</label>
+          <input type="text" id="username" name="username" placeholder="Letters, numbers, underscores (e.g. john_doe)" class="form-control" autocomplete="username" required autofocus>
+          <span class="form-help">Must be 3-20 characters long.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="At least 4 characters" class="form-control" autocomplete="new-password" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm Password</label>
+          <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat your password" class="form-control" autocomplete="new-password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">Create Account</button>
+      </form>
+
+      <!-- Back to Login Link -->
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); text-align: center;">
+        <p class="text-sm text-muted">
+          Already registered? <a href="{{ url_for('login') }}" style="color: #4338CA; font-weight: 600; text-decoration: none;">Sign In</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" style="margin-top: 2rem;">
+      <p>Smart Expense Tracker &copy; 2026</p>
+    </footer>
+  </div>
+</body>
+</html>

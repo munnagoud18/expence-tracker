@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spending Prediction - Smart Expense Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navbar -->
+    <header class="navbar">
+      <a href="{{ url_for('index') }}" class="navbar-brand">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="{{ url_for('index') }}" class="nav-link">Dashboard</a></li>
+          <li><a href="{{ url_for('expenses_list') }}" class="nav-link">All Expenses</a></li>
+          <li><a href="{{ url_for('predict_view') }}" class="nav-link active">Prediction</a></li>
+          <li><a href="{{ url_for('budget') }}" class="nav-link">Budget</a></li>
+          <li><a href="{{ url_for('load_sample') }}" class="nav-link" style="color: #4338CA; font-weight: 600;">Load Sample Data</a></li>
+          <li><span class="nav-link" style="cursor: default; color: var(--text-main); font-weight: 600;">👤 {{ current_user }}</span></li>
+          <li><a href="{{ url_for('logout') }}" class="btn-sm-danger" style="text-decoration: none; padding: 0.45rem 0.85rem;">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Alert Messages -->
+    <div class="alert-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span class="alert-icon">
+                {% if category == 'danger' %}🚨
+                {% elif category == 'warning' %}⚠️
+                {% elif category == 'success' %}✅
+                {% else %}ℹ️{% endif %}
+              </span>
+              <div class="alert-content">{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Prediction Outcome Card -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="section-header">
+        <h2 class="section-title">Linear Regression Spending Prediction for {{ current_user }}</h2>
+        <span class="badge badge-shopping">Scikit-Learn ML</span>
+      </div>
+
+      {% if predicted_val is not none %}
+        <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.75rem; text-align: center; margin-bottom: 1.5rem;">
+          <p class="text-sm text-muted" style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+            Estimated Spending for Next Month
+          </p>
+          <div style="font-size: 2.75rem; font-weight: 700; color: #1E1B4B; margin: 0.5rem 0;">
+            ₹{{ "{:,.2f}".format(predicted_val) }}
+          </div>
+          <p class="text-sm" style="color: #166534; font-weight: 500;">
+            ✅ {{ message }}
+          </p>
+        </div>
+      {% else %}
+        <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
+          <span class="alert-icon">ℹ️</span>
+          <div class="alert-content">
+            <div class="alert-title">Insufficient Historical Data for {{ current_user }}</div>
+            {{ message }}
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <a href="{{ url_for('load_sample') }}" class="btn btn-primary">
+            📊 Load 6 Months of Sample Data Now
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Past Completed Months Table -->
+      <h3 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 0.75rem;">Your Completed Past Months</h3>
+      <p class="text-sm text-muted" style="margin-bottom: 1rem;">
+        The current incomplete month is automatically excluded so that partial data does not distort your linear regression trend line.
+      </p>
+
+      {% if past_months %}
+        <div class="table-responsive">
+          <table class="expenses-table">
+            <thead>
+              <tr>
+                <th>Month (Year-Month)</th>
+                <th>Time Index (X)</th>
+                <th>Total Spent (Y)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in past_months %}
+                <tr>
+                  <td><strong>{{ item.month }}</strong></td>
+                  <td>Month {{ loop.index0 }}</td>
+                  <td class="td-amount">₹{{ "{:,.2f}".format(item.total) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-sm text-muted">No completed months found in your account.</p>
+      {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Smart Expense Tracker &copy; 2026 — Logged in as <strong>{{ current_user }}</strong></p>
+    </footer>
+  </div>
+</body>
+</html>

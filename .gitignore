@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.log
+flask_out.log
+flask_err.log
+tunnel.log
+
+# Cloudflared & Temp
+cloudflared.exe
+*.tmp

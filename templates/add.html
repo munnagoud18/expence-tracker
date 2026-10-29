@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Expense - Smart Expense Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container" style="max-width: 650px;">
+    <!-- Navbar -->
+    <header class="navbar">
+      <a href="{{ url_for('index') }}" class="navbar-brand">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="{{ url_for('index') }}" class="nav-link">Dashboard</a></li>
+          <li><a href="{{ url_for('expenses_list') }}" class="nav-link">All Expenses</a></li>
+          <li><span class="nav-link" style="cursor: default; color: var(--text-main); font-weight: 600;">👤 {{ current_user }}</span></li>
+          <li><a href="{{ url_for('logout') }}" class="btn-sm-danger" style="text-decoration: none; padding: 0.45rem 0.85rem;">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Alert Messages -->
+    <div class="alert-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span class="alert-icon">
+                {% if category == 'danger' %}🚨
+                {% elif category == 'warning' %}⚠️
+                {% elif category == 'success' %}✅
+                {% else %}ℹ️{% endif %}
+              </span>
+              <div class="alert-content">{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Expense Form Card -->
+    <div class="card form-card">
+      <div class="section-header">
+        <h2 class="section-title">Record New Expense for {{ current_user }}</h2>
+      </div>
+      <form class="expense-form" method="POST" action="{{ url_for('add_expense') }}">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="date">Expense Date</label>
+            <input type="date" id="date" name="date" value="{{ today_str }}" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="amount">Amount (₹)</label>
+            <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="e.g. 350.00" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="description">Expense Description</label>
+          <input type="text" id="description" name="description" placeholder="e.g. Dinner with friends at restaurant" class="form-control" autocomplete="off" required>
+          <span class="form-help">Naive Bayes automatically suggests category as you type.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="category">
+            Category
+            <span class="ai-badge" id="ai-indicator">AI Suggested</span>
+          </label>
+          <select id="category" name="category" class="form-control">
+            {% for cat in categories %}
+              <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 2;">Save Expense</button>
+          <a href="{{ url_for('index') }}" class="btn btn-subtle" style="flex: 1; text-align: center;">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Smart Expense Tracker &copy; 2026 — Logged in as <strong>{{ current_user }}</strong></p>
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      const descInput = document.getElementById('description');
+      const categorySelect = document.getElementById('category');
+      const aiBadge = document.getElementById('ai-indicator');
+      let debounceTimer = null;
+
+      if (descInput && categorySelect) {
+        descInput.addEventListener('input', function() {
+          clearTimeout(debounceTimer);
+          const text = descInput.value.trim();
+          if (text.length < 3) return;
+
+          debounceTimer = setTimeout(() => {
+            fetch('/suggest-category?description=' + encodeURIComponent(text))
+              .then(res => res.json())
+              .then(data => {
+                if (data && data.category) {
+                  categorySelect.value = data.category;
+                  if (aiBadge) {
+                    aiBadge.innerText = 'AI Suggested: ' + data.category;
+                  }
+                }
+              })
+              .catch(() => {});
+          }, 250);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

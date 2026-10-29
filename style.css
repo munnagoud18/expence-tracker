@@ -1,0 +1,787 @@
+/* ==========================================================================
+   SMART EXPENSE TRACKER - STYLESHEET (style.css)
+   A modern, minimal, soft pastel theme for Python + Flask web app
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. GOOGLE FONTS IMPORT
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+/* --------------------------------------------------------------------------
+   2. CSS DESIGN TOKENS & VARIABLES (:root)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Core Pastel Palette (as specified) */
+  --bg-color: #F8FAFC;           /* Very light grey-blue background */
+  --card-bg: #FFFFFF;            /* Clean white card surface */
+  --primary: #A5B4FC;            /* Soft pastel indigo */
+  --primary-hover: #818CF8;      /* Slightly deeper indigo on hover */
+  --primary-text: #1E1B4B;       /* High-contrast dark indigo text for primary buttons */
+  
+  --secondary: #99F6E4;          /* Soft teal */
+  --secondary-hover: #5EEAD4;    /* Slightly deeper teal */
+  --secondary-text: #134E4A;     /* Dark teal text for contrast */
+
+  --accent: #FDE68A;             /* Soft pastel yellow */
+  --accent-hover: #FCD34D;       /* Deeper yellow */
+  --accent-text: #78350F;        /* Dark warm brown/amber text */
+
+  --success-bg: #BBF7D0;         /* Soft light green */
+  --success-text: #14532D;       /* Deep green text */
+  --success-border: #86EFAC;
+
+  --warning-bg: #FEF3C7;         /* Soft light yellow (for ~80% budget alert) */
+  --warning-text: #854D0E;       /* Deep amber text */
+  --warning-border: #FDE68A;
+
+  --danger-bg: #FECACA;          /* Soft light red (for over-budget limit) */
+  --danger-text: #7F1D1D;        /* Deep red text */
+  --danger-border: #FCA5A5;
+
+  /* Typography Colors */
+  --text-main: #334155;          /* Dark slate for primary readability */
+  --text-muted: #64748B;         /* Slate muted grey for labels and captions */
+  --text-light: #94A3B8;         /* Subtle secondary labels */
+
+  /* Structural & Utility Tokens */
+  --border-color: #E2E8F0;       /* Soft border grey */
+  --border-radius: 12px;         /* Standard rounded corners */
+  --border-radius-sm: 8px;       /* Smaller radius for inputs/pills */
+  --border-radius-pill: 9999px;   /* Full rounded pills for badges */
+
+  /* Shadows & Transitions */
+  --shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --shadow-hover: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   3. BASE & RESET STYLES
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* Main Container Layout */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3.5rem;
+}
+
+/* Typography Defaults */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+p {
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+/* --------------------------------------------------------------------------
+   4. HEADER / NAVBAR
+   -------------------------------------------------------------------------- */
+.navbar {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-card);
+  padding: 1rem 1.75rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.2px;
+}
+
+.navbar-brand .brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background-color: var(--primary);
+  color: var(--primary-text);
+  border-radius: var(--border-radius-sm);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 0.5rem;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.925rem;
+  font-weight: 500;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--text-main);
+  background-color: var(--bg-color);
+}
+
+/* --------------------------------------------------------------------------
+   5. BUDGET ALERTS & NOTIFICATIONS
+   -------------------------------------------------------------------------- */
+.alert-container {
+  margin-bottom: 1.75rem;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.alert-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+/* Over Budget Limit Alert */
+.alert-danger {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border-color: var(--danger-border);
+}
+
+/* 80% Threshold Warning Alert */
+.alert-warning {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+  border-color: var(--warning-border);
+}
+
+/* Safe / Under Budget Notification */
+.alert-success {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  border-color: var(--success-border);
+}
+
+/* AI Classifier / Informational Notice */
+.alert-info {
+  background-color: #E0E7FF;
+  color: #3730A3;
+  border-color: #C7D2FE;
+}
+
+/* --------------------------------------------------------------------------
+   6. SUMMARY CARDS (KPIs: Total Spent, Top Category, Budget Status, Prediction)
+   -------------------------------------------------------------------------- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-card);
+  padding: 1.5rem;
+  transition: var(--transition);
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Top Accent Bar on Summary Cards */
+.summary-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--primary);
+}
+
+.summary-card.accent-secondary::before {
+  background-color: var(--secondary);
+}
+
+.summary-card.accent-warning::before {
+  background-color: var(--accent);
+}
+
+.summary-card.accent-danger::before {
+  background-color: var(--danger-bg);
+}
+
+.card-header-sm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.card-title-sm {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.card-value {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+  margin-bottom: 0.35rem;
+}
+
+.card-subtitle {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* --------------------------------------------------------------------------
+   7. MAIN CONTENT LAYOUT (Form + Visuals / Split Grid)
+   -------------------------------------------------------------------------- */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* --------------------------------------------------------------------------
+   8. EXPENSE FORM (Inputs, Dropdown, Predictor, Buttons)
+   -------------------------------------------------------------------------- */
+.form-card {
+  height: 100%;
+}
+
+.expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* AI Classifier Badge beside Category label */
+.ai-badge {
+  font-size: 0.725rem;
+  font-weight: 600;
+  background-color: var(--secondary);
+  color: var(--secondary-text);
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--border-radius-pill);
+  letter-spacing: 0.2px;
+}
+
+/* Form Controls */
+.form-control {
+  width: 100%;
+  padding: 0.7rem 0.95rem;
+  font-family: inherit;
+  font-size: 0.925rem;
+  color: var(--text-main);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition);
+  outline: none;
+}
+
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.25);
+  background-color: #FFFFFF;
+}
+
+.form-control::placeholder {
+  color: var(--text-light);
+}
+
+/* Select Dropdown */
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1rem;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+/* Form Helper Text */
+.form-help {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   9. BUTTONS
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  font-family: inherit;
+  font-size: 0.925rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+  line-height: 1.25;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* Primary Button (Pastel Indigo) */
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-text);
+  box-shadow: 0 2px 8px rgba(165, 180, 252, 0.4);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.45);
+}
+
+/* Secondary Button (Pastel Teal) */
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-text);
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover);
+}
+
+/* Subtle / Ghost Button */
+.btn-subtle {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+.btn-subtle:hover {
+  background-color: #EDF2F7;
+  color: var(--text-main);
+}
+
+/* Delete / Action Button */
+.btn-sm-danger {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.775rem;
+  border-radius: 6px;
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-sm-danger:hover {
+  background-color: #FCA5A5;
+}
+
+/* Full Width Button Helper */
+.btn-block {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   10. MATPLOTLIB DASHBOARD IMAGE SECTION
+   -------------------------------------------------------------------------- */
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-wrapper {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+}
+
+.dashboard-image {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
+  transition: transform 0.3s ease;
+}
+
+.dashboard-image:hover {
+  transform: scale(1.01);
+}
+
+.chart-caption {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.85rem;
+}
+
+/* Empty State / Fallback for Visualizer */
+.chart-placeholder {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted);
+}
+
+.chart-placeholder-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+}
+
+/* --------------------------------------------------------------------------
+   11. EXPENSES TABLE (Striped Rows, Hover Effect, Category Badges)
+   -------------------------------------------------------------------------- */
+.table-card {
+  margin-top: 1.5rem;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.expenses-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.925rem;
+  white-space: nowrap;
+}
+
+/* Table Header */
+.expenses-table thead th {
+  background-color: #F8FAFC;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.6px;
+  padding: 0.95rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Table Cells */
+.expenses-table tbody td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+/* Alternating Striped Rows */
+.expenses-table tbody tr:nth-child(even) {
+  background-color: #F8FAFC;
+}
+
+/* Row Hover State */
+.expenses-table tbody tr {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.expenses-table tbody tr:hover {
+  background-color: #EEF2F6;
+}
+
+/* Numerical / Currency Cells */
+.td-amount {
+  font-weight: 600;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Category Badges / Tags */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--border-radius-pill);
+  font-size: 0.775rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+}
+
+/* Preset Category Pastel Styles */
+.badge-food {
+  background-color: var(--secondary);
+  color: var(--secondary-text);
+}
+
+.badge-shopping {
+  background-color: var(--primary);
+  color: var(--primary-text);
+}
+
+.badge-transport {
+  background-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.badge-bills {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.badge-entertainment {
+  background-color: #E9D5FF;
+  color: #581C87;
+}
+
+.badge-other {
+  background-color: #E2E8F0;
+  color: #475569;
+}
+
+/* Dynamic Category Breakdown Progress Bars */
+.category-bars {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.category-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.825rem;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.category-bar-track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--bg-color);
+  border-radius: var(--border-radius-pill);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.category-bar-fill {
+  height: 100%;
+  border-radius: var(--border-radius-pill);
+  transition: width 0.4s ease-in-out;
+}
+
+/* --------------------------------------------------------------------------
+   12. FOOTER
+   -------------------------------------------------------------------------- */
+.footer {
+  margin-top: 3.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   13. RESPONSIVE DESIGN (Media Queries)
+   -------------------------------------------------------------------------- */
+
+/* Tablet Viewports (max-width: 992px) */
+@media (max-width: 992px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile Devices (max-width: 640px) */
+@media (max-width: 640px) {
+  .app-container {
+    padding: 1rem 0.75rem 2.5rem;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .nav-links {
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 1.15rem;
+  }
+
+  .card-value {
+    font-size: 1.6rem;
+  }
+
+  .expenses-table thead th,
+  .expenses-table tbody td {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

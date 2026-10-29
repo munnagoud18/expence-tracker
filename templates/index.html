@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Expense Tracker with Data Visualization</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navbar -->
+    <header class="navbar">
+      <a href="{{ url_for('index') }}" class="navbar-brand">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="{{ url_for('index') }}" class="nav-link active">Dashboard</a></li>
+          <li><a href="{{ url_for('expenses_list') }}" class="nav-link">All Expenses</a></li>
+          <li><a href="{{ url_for('predict_view') }}" class="nav-link">Prediction</a></li>
+          <li><a href="{{ url_for('budget') }}" class="nav-link">Budget</a></li>
+          <li><a href="{{ url_for('load_sample') }}" class="nav-link" style="color: #4338CA; font-weight: 600;">Load Sample Data</a></li>
+          <li><span class="nav-link" style="cursor: default; color: var(--text-main); font-weight: 600;">👤 {{ current_user }}</span></li>
+          <li><a href="{{ url_for('logout') }}" class="btn-sm-danger" style="text-decoration: none; padding: 0.45rem 0.85rem;">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Budget Alert & Notification Messages (Flash) -->
+    <div class="alert-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span class="alert-icon">
+                {% if category == 'danger' %}🚨
+                {% elif category == 'warning' %}⚠️
+                {% elif category == 'success' %}✅
+                {% else %}ℹ️{% endif %}
+              </span>
+              <div class="alert-content">
+                {{ message }}
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <section class="summary-grid">
+      <!-- Total Spent This Month -->
+      <div class="card summary-card">
+        <div class="card-header-sm">
+          <span class="card-title-sm">Total Spent (This Month)</span>
+        </div>
+        <div class="card-value">₹{{ "{:,.2f}".format(stats.this_month_spent) }}</div>
+        <div class="card-subtitle">{{ "{:.1f}%".format(stats.pct_budget) }} of ₹{{ "{:,.0f}".format(stats.budget) }} budget</div>
+      </div>
+
+      <!-- Top Spending Category -->
+      <div class="card summary-card accent-secondary">
+        <div class="card-header-sm">
+          <span class="card-title-sm">Top Category</span>
+        </div>
+        <div class="card-value">{{ stats.top_category }}</div>
+        <div class="card-subtitle">
+          {% if stats.top_category_amount > 0 %}
+            ₹{{ "{:,.2f}".format(stats.top_category_amount) }} ({{ "{:.1f}%".format(stats.top_category_pct) }})
+          {% else %}
+            No spending yet
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Budget Status -->
+      <div class="card summary-card {{ stats.budget_card_class }}">
+        <div class="card-header-sm">
+          <span class="card-title-sm">Budget Status</span>
+        </div>
+        <div class="card-value">{{ stats.budget_status_label }}</div>
+        <div class="card-subtitle">{{ stats.budget_status_sub }}</div>
+      </div>
+
+      <!-- Spending Prediction via Linear Regression -->
+      <div class="card summary-card">
+        <div class="card-header-sm">
+          <span class="card-title-sm">Next Month Predicted</span>
+        </div>
+        <div class="card-value">{{ stats.prediction_val_str }}</div>
+        <div class="card-subtitle">{{ stats.prediction_sub_str }}</div>
+      </div>
+    </section>
+
+    <!-- Main Content: Form & Matplotlib Dashboard Grid -->
+    <div class="content-grid">
+      <!-- Expense Form Card -->
+      <div class="card form-card">
+        <div class="section-header">
+          <h2 class="section-title">Add New Expense</h2>
+        </div>
+        <form class="expense-form" method="POST" action="{{ url_for('add_expense') }}">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="date">Date</label>
+              <input type="date" id="date" name="date" value="{{ stats.today_str }}" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="amount">Amount (₹)</label>
+              <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="e.g. 250" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="description">Expense Description</label>
+            <input type="text" id="description" name="description" placeholder="e.g. Lunch with friends at Cafe" class="form-control" autocomplete="off" required>
+            <span class="form-help">Naive Bayes auto-categorizes live as you type.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="category">
+              Category
+              <span class="ai-badge" id="ai-indicator">AI Suggested</span>
+            </label>
+            <select id="category" name="category" class="form-control">
+              {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Add Expense</button>
+        </form>
+      </div>
+
+      <!-- Matplotlib Chart Section -->
+      <div class="card dashboard-card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Visual Analytics Dashboard</h2>
+            <span class="text-sm text-muted">Pandas & Matplotlib &bull; Dynamic real-time charts</span>
+          </div>
+          <button type="button" class="btn btn-subtle text-sm" onclick="refreshDashboardChart()" title="Reload charts">
+            🔄 Refresh Chart
+          </button>
+        </div>
+        <div class="chart-wrapper">
+          <img id="dashboard-chart-img" src="{{ url_for('dashboard_chart') }}?t={{ cache_buster }}" alt="Spending Habits Visualization" class="dashboard-image">
+        </div>
+        <p class="chart-caption">Category Breakdown &bull; Monthly Spending Totals &bull; Daily Trends</p>
+
+        {% if stats.category_breakdown %}
+        <div class="category-bars">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.825rem; font-weight: 600; color: var(--text-main);">This Month Category Distribution</span>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">{{ stats.category_breakdown|length }} active categories</span>
+          </div>
+          {% for item in stats.category_breakdown %}
+          <div class="category-bar-item">
+            <div class="category-bar-header">
+              <span><strong>{{ item.category }}</strong>: ₹{{ "{:,.2f}".format(item.amount) }}</span>
+              <span>{{ item.pct }}%</span>
+            </div>
+            <div class="category-bar-track">
+              <div class="category-bar-fill" style="width: {{ item.pct }}%; background-color: {{ item.color }};"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Expenses Table Card -->
+    <div class="card table-card">
+      <div class="section-header">
+        <h2 class="section-title">Your Recent Transactions ({{ current_user }})</h2>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <a href="{{ url_for('expenses_list') }}" class="btn btn-subtle text-sm">View All Expenses</a>
+          <a href="{{ url_for('export_csv') }}" class="btn btn-subtle text-sm">Download CSV</a>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="expenses-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if recent_expenses %}
+              {% for item in recent_expenses %}
+                <tr>
+                  <td>{{ item.date }}</td>
+                  <td>{{ item.description }}</td>
+                  <td>
+                    <span class="badge badge-{{ item.category.lower() }}">{{ item.category }}</span>
+                  </td>
+                  <td class="td-amount">₹{{ "{:,.2f}".format(item.amount) }}</td>
+                  <td>
+                    <form action="{{ url_for('delete_expense', id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this expense?');">
+                      <button type="submit" class="btn-sm-danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  No expenses recorded yet for <strong>{{ current_user }}</strong>. Add your first expense above or click <strong>Load Sample Data</strong>!
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Smart Expense Tracker &copy; 2026 — Logged in as <strong>{{ current_user }}</strong></p>
+    </footer>
+  </div>
+
+  <!-- Live AJAX Auto-Categorization & Chart Refresh Script -->
+  <script>
+    function refreshDashboardChart() {
+      const chartImg = document.getElementById('dashboard-chart-img');
+      if (chartImg) {
+        chartImg.src = '{{ url_for("dashboard_chart") }}?t=' + new Date().getTime();
+      }
+    }
+
+    (function() {
+      const descInput = document.getElementById('description');
+      const categorySelect = document.getElementById('category');
+      const aiBadge = document.getElementById('ai-indicator');
+      let debounceTimer = null;
+
+      if (descInput && categorySelect) {
+        descInput.addEventListener('input', function() {
+          clearTimeout(debounceTimer);
+          const text = descInput.value.trim();
+          if (text.length < 3) return;
+
+          debounceTimer = setTimeout(() => {
+            fetch('/suggest-category?description=' + encodeURIComponent(text))
+              .then(res => res.json())
+              .then(data => {
+                if (data && data.category) {
+                  categorySelect.value = data.category;
+                  if (aiBadge) {
+                    aiBadge.innerText = 'AI Suggested: ' + data.category;
+                    aiBadge.style.backgroundColor = 'var(--secondary)';
+                  }
+                }
+              })
+              .catch(() => {});
+          }, 250);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

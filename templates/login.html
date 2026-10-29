@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Smart Expense Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container" style="max-width: 480px; margin-top: 2rem;">
+    <!-- Brand Header -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="{{ url_for('login') }}" class="navbar-brand" style="justify-content: center; font-size: 1.5rem;">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <p class="text-sm text-muted" style="margin-top: 0.5rem;">
+        Personalized spending tracking, AI categorization & prediction
+      </p>
+    </div>
+
+    <!-- Flash Alert Messages -->
+    <div class="alert-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span class="alert-icon">
+                {% if category == 'danger' %}🚨
+                {% elif category == 'warning' %}⚠️
+                {% elif category == 'success' %}✅
+                {% else %}ℹ️{% endif %}
+              </span>
+              <div class="alert-content">{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Login Card -->
+    <div class="card form-card">
+      <div class="section-header">
+        <h2 class="section-title">Sign In to Your Account</h2>
+      </div>
+      <p class="text-sm text-muted" style="margin-bottom: 1.25rem;">
+        Each user has their own private expenses, budget, and charts.
+      </p>
+
+      <form class="expense-form" method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="e.g. rahul or priya" class="form-control" autocomplete="username" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" class="form-control" autocomplete="current-password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">Sign In</button>
+      </form>
+
+      <!-- Quick Demo Login Option -->
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); text-align: center;">
+        <p class="text-sm text-muted" style="margin-bottom: 0.75rem;">Want to test immediately?</p>
+        <form method="POST" action="{{ url_for('login') }}">
+          <input type="hidden" name="username" value="demo">
+          <input type="hidden" name="password" value="demo123">
+          <button type="submit" class="btn btn-secondary btn-block text-sm">
+            ⚡ Instant Demo Login (as 'demo')
+          </button>
+        </form>
+      </div>
+
+      <!-- Registration Link -->
+      <div style="margin-top: 1.25rem; text-align: center;">
+        <p class="text-sm text-muted">
+          New user? <a href="{{ url_for('register') }}" style="color: #4338CA; font-weight: 600; text-decoration: none;">Create an Account</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" style="margin-top: 2rem;">
+      <p>Smart Expense Tracker &copy; 2026</p>
+    </footer>
+  </div>
+</body>
+</html>

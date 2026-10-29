@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Expenses - Smart Expense Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navbar -->
+    <header class="navbar">
+      <a href="{{ url_for('index') }}" class="navbar-brand">
+        <span class="brand-icon">₹</span>
+        <span>Smart Expense Tracker</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="{{ url_for('index') }}" class="nav-link">Dashboard</a></li>
+          <li><a href="{{ url_for('expenses_list') }}" class="nav-link active">All Expenses</a></li>
+          <li><a href="{{ url_for('predict_view') }}" class="nav-link">Prediction</a></li>
+          <li><a href="{{ url_for('budget') }}" class="nav-link">Budget</a></li>
+          <li><a href="{{ url_for('load_sample') }}" class="nav-link" style="color: #4338CA; font-weight: 600;">Load Sample Data</a></li>
+          <li><span class="nav-link" style="cursor: default; color: var(--text-main); font-weight: 600;">👤 {{ current_user }}</span></li>
+          <li><a href="{{ url_for('logout') }}" class="btn-sm-danger" style="text-decoration: none; padding: 0.45rem 0.85rem;">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Alert Messages -->
+    <div class="alert-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span class="alert-icon">
+                {% if category == 'danger' %}🚨
+                {% elif category == 'warning' %}⚠️
+                {% elif category == 'success' %}✅
+                {% else %}ℹ️{% endif %}
+              </span>
+              <div class="alert-content">{{ message }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Summary KPI Header for Expenses -->
+    <section class="summary-grid" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="card summary-card">
+        <div class="card-header-sm">
+          <span class="card-title-sm">Total Recorded Spending ({{ current_user }})</span>
+        </div>
+        <div class="card-value">₹{{ "{:,.2f}".format(total_amount) }}</div>
+        <div class="card-subtitle">Personal recorded transactions</div>
+      </div>
+      <div class="card summary-card accent-secondary">
+        <div class="card-header-sm">
+          <span class="card-title-sm">Total Entries</span>
+        </div>
+        <div class="card-value">{{ count }}</div>
+        <div class="card-subtitle">Transactions recorded for your account</div>
+      </div>
+    </section>
+
+    <!-- Expenses Table Card -->
+    <div class="card table-card" style="margin-top: 1rem;">
+      <div class="section-header">
+        <h2 class="section-title">All Expense Transactions (Newest First)</h2>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <a href="{{ url_for('add_expense') }}" class="btn btn-primary text-sm">+ Add New Expense</a>
+          <a href="{{ url_for('export_csv') }}" class="btn btn-subtle text-sm">Download My CSV</a>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="expenses-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if expenses %}
+              {% for item in expenses %}
+                <tr>
+                  <td>{{ item.date }}</td>
+                  <td>{{ item.description }}</td>
+                  <td>
+                    <span class="badge badge-{{ item.category.lower() }}">{{ item.category }}</span>
+                  </td>
+                  <td class="td-amount">₹{{ "{:,.2f}".format(item.amount) }}</td>
+                  <td>
+                    <form action="{{ url_for('delete_expense', id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this expense?');">
+                      <button type="submit" class="btn-sm-danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+                  No expenses recorded yet for <strong>{{ current_user }}</strong>. Click <strong>Add New Expense</strong> or <strong>Load Sample Data</strong> to get started!
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Smart Expense Tracker &copy; 2026 — Logged in as <strong>{{ current_user }}</strong></p>
+    </footer>
+  </div>
+</body>
+</html>
